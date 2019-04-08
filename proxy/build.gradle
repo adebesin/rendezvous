@@ -1,0 +1,23 @@
+version '1.0-SNAPSHOT'
+
+repositories {
+    maven {
+        url 'https://jitpack.io'
+    }
+}
+
+bootJar {
+    exclude '**/*.pom'
+}
+
+dependencies {
+    implementation project(":commons")
+    implementation "javax.validation:validation-api:2.0.1.Final"
+    implementation("com.mapr.ojai:mapr-ojai-driver:6.1.0-mapr") {
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    }
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.github.mapr-demos:spring-data-maprdb:1.0.0.M2"
+}

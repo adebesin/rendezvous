@@ -1,0 +1,4 @@
+version '1.0-SNAPSHOT'
+bootJar.enabled = false
+bootRun.enabled = false
+jar.enabled = true

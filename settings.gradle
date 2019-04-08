@@ -1,0 +1,4 @@
+rootProject.name = 'rendezvous'
+include 'commons'
+include 'proxy'
+include 'model'

@@ -1,0 +1,65 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.3.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://repository.mapr.com/maven'
+        }
+    }
+}
+
+wrapper{
+    gradleVersion = '4.10.3'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    buildscript {
+        ext {
+            springBootVersion = '2.1.3.RELEASE'
+        }
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        }
+    }
+
+    group = 'com.mapr.rendezvous'
+    sourceCompatibility = '1.8'
+
+    dependencies {
+        implementation "org.springframework.boot:spring-boot-starter"
+        implementation "org.projectlombok:lombok:1.18.4"
+        implementation ("org.apache.kafka:kafka-clients:1.1.1-mapr") {
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+            exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+        }
+        implementation("com.mapr.streams:mapr-streams:6.1.0-mapr") {
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+            exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+        }
+        implementation ("io.projectreactor.kafka:reactor-kafka:1.1.0.RELEASE") {
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+            exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+            exclude group: 'org.apache.kafka', module: 'kafka-clients'
+        }
+        implementation "xerces:xercesImpl:2.11.0"
+        testImplementation "org.springframework.boot:spring-boot-starter-test"
+    }
+}
