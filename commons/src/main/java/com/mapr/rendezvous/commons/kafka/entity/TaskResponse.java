@@ -15,4 +15,5 @@ public class TaskResponse {
     private ModelClass modelClass;
     private String modelId;
     private String result;
+    private Float accuracy;
 }
