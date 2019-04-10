@@ -5,7 +5,7 @@ import com.mapr.rendezvous.commons.kafka.KafkaClient;
 import com.mapr.rendezvous.commons.kafka.entity.TaskRequest;
 import com.mapr.rendezvous.commons.kafka.entity.TaskResponse;
 import com.mapr.rendezvous.commons.kafka.util.KafkaNameUtility;
-import com.mapr.rendezvous.model.service.TasksExecutor;
+import com.mapr.rendezvous.model.service.TasksRunner;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class TasksHandler {
 
     private final KafkaClient client;
     private final String stream;
-    private final TasksExecutor executor;
+    private final TasksRunner executor;
 
     @PostConstruct
     private void init() {

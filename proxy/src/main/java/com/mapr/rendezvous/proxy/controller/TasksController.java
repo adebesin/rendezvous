@@ -19,6 +19,6 @@ public class TasksController {
     @PutMapping
     public TaskResponse putTask(TaskRequest request) {
         log.info("PUT request for '/task' {}", request);
-        return taskService.sendAndReceive(request);
+        return taskService.sendAndReceive(request).block();
     }
 }

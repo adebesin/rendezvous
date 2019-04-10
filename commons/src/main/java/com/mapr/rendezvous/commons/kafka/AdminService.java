@@ -6,7 +6,9 @@ import com.mapr.streams.Streams;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,10 +48,32 @@ public class AdminService {
         admin.createStream(stream, Streams.newStreamDescriptor());
     }
 
+    public Mono<Void> createStreamAsync(String stream) {
+        return Mono.create(voidMonoSink -> {
+            try {
+                admin.createStream(stream, Streams.newStreamDescriptor());
+                voidMonoSink.success();
+            } catch (IOException e) {
+                voidMonoSink.error(e);
+            }
+        });
+    }
+
     @SneakyThrows
     public void createTopic(final String stream, final String topic) {
         log.info("Creating topic {}:{}", stream, topic);
         admin.createTopic(stream, topic);
+    }
+
+    public Mono<Void> createTopicAsync(String stream, String topic) {
+        return Mono.create(voidMonoSink -> {
+            try {
+                admin.createTopic(stream, topic);
+                voidMonoSink.success();
+            } catch (IOException e) {
+                voidMonoSink.error(e);
+            }
+        });
     }
 
     @SneakyThrows
@@ -77,7 +101,7 @@ public class AdminService {
     public boolean createStreamAndTopicIfNotExists(String topic) {
         String[] nameParts = topic.split(":");
 
-        if(nameParts.length != 2)
+        if (nameParts.length != 2)
             throw new RuntimeException("Should have stream separated from topic by ':' " + topic);
 
         createStreamIfNotExists(nameParts[0]);
@@ -85,7 +109,7 @@ public class AdminService {
     }
 
     public boolean createStreamIfNotExists(String stream) {
-        if(!streamExists(stream)) {
+        if (!streamExists(stream)) {
             createStream(stream);
             return true;
         } else {
@@ -94,7 +118,7 @@ public class AdminService {
     }
 
     public boolean createTopicIfNotExists(String stream, String topic) {
-        if(!topicExists(stream, topic)) {
+        if (!topicExists(stream, topic)) {
             createTopic(stream, topic);
             return true;
         } else {
