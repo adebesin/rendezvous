@@ -1,5 +1,6 @@
 package com.mapr.rendezvous.commons.kafka;
 
+import com.mapr.db.exceptions.TableExistsException;
 import com.mapr.streams.Admin;
 import com.mapr.streams.StreamDescriptor;
 import com.mapr.streams.Streams;
@@ -9,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,7 +53,11 @@ public class AdminService {
     public Mono<Void> createStreamAsync(String stream) {
         return Mono.create(voidMonoSink -> {
             try {
+                log.info("Creating stream {}", stream);
                 admin.createStream(stream, Streams.newStreamDescriptor());
+                voidMonoSink.success();
+            } catch (TableExistsException e) {
+                log.warn("Stream '{}' already exists", stream);
                 voidMonoSink.success();
             } catch (IOException e) {
                 voidMonoSink.error(e);
@@ -68,7 +74,11 @@ public class AdminService {
     public Mono<Void> createTopicAsync(String stream, String topic) {
         return Mono.create(voidMonoSink -> {
             try {
+                log.info("Creating topic {}:{}", stream, topic);
                 admin.createTopic(stream, topic);
+                voidMonoSink.success();
+            } catch (FileAlreadyExistsException e) {
+                log.warn("Topic '{}' in stream '{}' already exists", topic, stream);
                 voidMonoSink.success();
             } catch (IOException e) {
                 voidMonoSink.error(e);

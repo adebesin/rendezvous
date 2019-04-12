@@ -1,10 +1,10 @@
 package com.mapr.rendezvous.commons.kafka.entity;
 
-import com.mapr.rendezvous.commons.entity.ModelClass;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 
 @Data
 @Builder
@@ -14,6 +14,6 @@ public class TaskRequest {
     private String requestId;
     private String proxyId;
     private Long timeout;
-    private ModelClass modelClass;
+    private Field.Str modelClass;
     private String modelId;
 }

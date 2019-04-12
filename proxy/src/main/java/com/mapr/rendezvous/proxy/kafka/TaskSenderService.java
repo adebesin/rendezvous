@@ -1,14 +1,13 @@
 package com.mapr.rendezvous.proxy.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mapr.db.exceptions.TableExistsException;
 import com.mapr.rendezvous.commons.kafka.AdminService;
 import com.mapr.rendezvous.commons.kafka.KafkaClient;
 import com.mapr.rendezvous.commons.kafka.entity.TaskRequest;
 import com.mapr.rendezvous.commons.kafka.entity.TaskResponse;
 import com.mapr.rendezvous.commons.kafka.util.KafkaNameUtility;
 import com.mapr.rendezvous.proxy.db.ModelService;
-import config.ProxyConfig;
+import com.mapr.rendezvous.proxy.config.ProxyConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +15,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.PostConstruct;
-import java.nio.file.FileAlreadyExistsException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,12 +55,11 @@ public class TaskSenderService {
         String responseStreamAndTopic = KafkaNameUtility.convertToKafkaTopic(stream, responseTopic);
 
         admin.createStreamAsync(stream)
-                .onErrorResume(TableExistsException.class, ex -> Mono.empty())
                 .then(admin.createTopicAsync(stream, REQUEST_TOPIC))
                 .then(admin.createTopicAsync(stream, responseTopic))
-                .onErrorResume(FileAlreadyExistsException.class, ex -> Mono.empty())
                 .thenMany(client.subscribe(Collections.singleton(responseStreamAndTopic)))
                 .map(this::convert)
+                .subscribeOn(Schedulers.newSingle("TasksResponsesHandler"))
                 .subscribe(this::handleResponse);
     }
 

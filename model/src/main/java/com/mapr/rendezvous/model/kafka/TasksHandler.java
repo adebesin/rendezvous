@@ -11,6 +11,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Component;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
@@ -32,7 +33,7 @@ public class TasksHandler {
     @PostConstruct
     private void init() {
         Set<String> topics = Collections.singleton(KafkaNameUtility.convertToKafkaTopic(stream, TOPIC));
-        client.subscribe(topics).subscribe(this::handle);
+        client.subscribe(topics).subscribeOn(Schedulers.newElastic("TaskHandler")).subscribe(this::handle);
     }
 
     @SneakyThrows
