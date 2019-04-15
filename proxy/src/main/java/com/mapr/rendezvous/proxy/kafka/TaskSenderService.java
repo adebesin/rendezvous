@@ -6,8 +6,8 @@ import com.mapr.rendezvous.commons.kafka.KafkaClient;
 import com.mapr.rendezvous.commons.kafka.entity.TaskRequest;
 import com.mapr.rendezvous.commons.kafka.entity.TaskResponse;
 import com.mapr.rendezvous.commons.kafka.util.KafkaNameUtility;
-import com.mapr.rendezvous.proxy.db.ModelService;
 import com.mapr.rendezvous.proxy.config.ProxyConfig;
+import com.mapr.rendezvous.proxy.model.PrimaryModelProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class TaskSenderService {
     private final String stream;
     private final AdminService admin;
     private final KafkaClient client;
-    private final ModelService modelService;
+    private final PrimaryModelProvider modelProvider;
 
     private String requestTopic;
     private Map<String, DirectProcessor<TaskResponse>> handlers = new ConcurrentHashMap<>();
@@ -65,17 +65,19 @@ public class TaskSenderService {
 
     public Mono<TaskResponse> sendAndReceive(TaskRequest task) {
         return Mono.defer(() -> {
-            task.setRequestId(UUID.randomUUID().toString());
-            task.setProxyId(config.getProxyId());
+            TaskRequest taskRequest = task.toBuilder()
+                    .requestId(UUID.randomUUID().toString())
+                    .proxyId(config.getProxyId())
+                    .build();
 
             DirectProcessor<TaskResponse> handler = DirectProcessor.create();
-            handlers.put(task.getRequestId(), handler);
+            handlers.put(taskRequest.getRequestId(), handler);
 
-            return send(task)
+            return send(taskRequest)
                     .doOnError(throwable -> log.error("Failed to send", throwable))
-                    .then(Mono.fromCallable(() -> modelService.getPrimaryId().orElse("")))
-                    .flatMap(id -> receive(id, task.getTimeout(), handler))
-                    .doOnSuccessOrError((v, e) -> handlers.remove(task.getRequestId()));
+                    .then(Mono.fromCallable(() -> modelProvider.getPrimaryModel().orElse("")))
+                    .flatMap(id -> receive(id, taskRequest.getTimeout(), handler))
+                    .doOnSuccessOrError((v, e) -> handlers.remove(taskRequest.getRequestId()));
         });
     }
 
@@ -91,11 +93,19 @@ public class TaskSenderService {
                     return list;
                 })
                 .map(list -> list.get(0))
+                .doOnError(e -> onError(e, duration))
                 .next();
     }
 
     @SneakyThrows
-    public Mono<Void> send(TaskRequest task) {
+    private void onError(Throwable throwable, Duration duration) {
+        if(throwable instanceof IndexOutOfBoundsException)
+            throw new TimeoutException(format("Timeout %d milliseconds", duration.toMillis()));
+        throw throwable;
+    }
+
+    @SneakyThrows
+    private Mono<Void> send(TaskRequest task) {
         return client.publish(requestTopic, MAPPER.writeValueAsBytes(task));
     }
 

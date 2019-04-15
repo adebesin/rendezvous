@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.apache.kafka.common.protocol.types.Field;
 
 @Data
-@Builder
+@Builder(toBuilder=true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskRequest {
