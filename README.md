@@ -15,4 +15,34 @@ At start model publishes info about itself to discovery topic in MapR Streams. A
 
 ### Communication between components
 ![alt text](diagrams/MapRStreamsDiagram.png)
+## API
+### REST
+To send task you have to make a PUT request to http://ADDRESS:PORT/task with JSON:
+```json
+{
+  "timeout": 10000,
+  "modelId": "MODEL_ID",
+  "modelClass": "MODEL_CLASS"
+}
+```
+* timeout - time in milliseconds for waiting for response from models (by default 30000)
+* modelId - id of model from which you want to get response
+* modelClass - class of models from which you want to get response
 
+All this fields are optional. And you can send just blank JSON to use default values.
+
+If everything is ok, then you will receive the next response:
+```json
+{
+  "requestId": "ID_OF_REQUEST",
+  "modelId": "MODEL_ID",
+  "modelClass": "MODEL_CLASS",
+  "result": "SOME_RESULT",
+  "accuracy": 0.1
+}
+```
+* requestId - id of request
+* modelId - id of model
+* modelClass - class of model
+* result - some result
+* accuracy - accuracy of result

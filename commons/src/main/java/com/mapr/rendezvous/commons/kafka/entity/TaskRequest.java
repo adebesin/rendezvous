@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 
 @Data
 @Builder(toBuilder=true)
@@ -14,6 +13,6 @@ public class TaskRequest {
     private String requestId;
     private String proxyId;
     private Long timeout;
-    private Field.Str modelClass;
+    private String modelClass;
     private String modelId;
 }

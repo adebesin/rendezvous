@@ -69,13 +69,15 @@ public class TaskSenderService {
                     .requestId(UUID.randomUUID().toString())
                     .proxyId(config.getProxyId())
                     .build();
+            String primaryModelId = taskRequest.getModelId() != null ?
+                    taskRequest.getModelId() : modelProvider.getPrimaryModel().orElse("");
 
             DirectProcessor<TaskResponse> handler = DirectProcessor.create();
             handlers.put(taskRequest.getRequestId(), handler);
 
             return send(taskRequest)
                     .doOnError(throwable -> log.error("Failed to send", throwable))
-                    .then(Mono.fromCallable(() -> modelProvider.getPrimaryModel().orElse("")))
+                    .then(Mono.fromCallable(() -> primaryModelId))
                     .flatMap(id -> receive(id, taskRequest.getTimeout(), handler))
                     .doOnSuccessOrError((v, e) -> handlers.remove(taskRequest.getRequestId()));
         });
@@ -99,13 +101,15 @@ public class TaskSenderService {
 
     @SneakyThrows
     private void onError(Throwable throwable, Duration duration) {
-        if(throwable instanceof IndexOutOfBoundsException)
+        if (throwable instanceof IndexOutOfBoundsException)
             throw new TimeoutException(format("Timeout %d milliseconds", duration.toMillis()));
         throw throwable;
     }
 
     @SneakyThrows
     private Mono<Void> send(TaskRequest task) {
+        log.info("Sending task {}", task.getRequestId());
+        log.debug(task.toString());
         return client.publish(requestTopic, MAPPER.writeValueAsBytes(task));
     }
 
@@ -119,13 +123,15 @@ public class TaskSenderService {
             return true;
 
         result.add(response);
-
         return false;
     }
 
     private void handleResponse(TaskResponse response) {
         DirectProcessor<TaskResponse> handler = handlers.get(response.getRequestId());
-        if (handler != null)
+        if (handler != null) {
+            log.info("Received response for task {} from model {}", response.getRequestId(), response.getModelId());
+            log.debug(response.toString());
             handler.onNext(response);
+        }
     }
 }
