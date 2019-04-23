@@ -1,8 +1,59 @@
 version '1.0-SNAPSHOT'
 
+apply plugin: "com.google.protobuf"
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/protoGen'
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:2.5.0'
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.2.0"
+        }
+    }
+
+    generateProtoTasks {
+        ofSourceSet('main').each { task ->
+            task.builtins {
+                java{
+                    outputSubDir = 'protoGen'
+                }
+            }
+            task.plugins {
+                grpc {
+                    outputSubDir = 'protoGen'
+                }
+            }
+        }
+    }
+    generatedFilesBaseDir = "$projectDir/src/"
+}
+
+task cleanProtoGen{
+    doFirst{
+        delete("$projectDir/src/main/protoGen")
+    }
+}
+clean.dependsOn cleanProtoGen
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.google.protobuf:protobuf-java:2.5.0'
+        force 'com.google.protobuf:protobuf-java-util:3.0.0'
+    }
+}
+
 dependencies {
     implementation project(":commons")
-    //implementation "javax.validation:validation-api:2.0.1.Final"
     implementation "org.springframework.boot:spring-boot-starter-webflux"
-    compile("org.eclipse.jetty:jetty-webapp:9.4.16.v20190411")
+    implementation("io.github.lognet:grpc-spring-boot-starter:3.2.2")
+    implementation("org.eclipse.jetty:jetty-webapp:9.4.16.v20190411")
 }

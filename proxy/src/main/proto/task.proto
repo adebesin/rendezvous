@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+option java_package = "com.mapr.rendezvous.proxy.grpc";
+
+service TaskSender {
+    rpc SendTask (TaskRequest) returns (TaskResponse) {}
+}
+
+message TaskRequest {
+    optional string timeout = 1;
+    optional string modelClass = 2;
+    optional string modelId = 3;
+}
+
+message TaskResponse {
+    required string requestId = 1;
+    required string modelClass = 2;
+    required string modelId = 3;
+    required string result = 4;
+    required string accuracy = 5;
+}
