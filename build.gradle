@@ -19,7 +19,7 @@ allprojects {
     }
 }
 
-wrapper{
+wrapper {
     gradleVersion = '4.10.3'
 }
 
@@ -50,7 +50,7 @@ subprojects {
     dependencies {
         implementation "org.springframework.boot:spring-boot-starter"
         implementation "org.projectlombok:lombok:1.18.4"
-        implementation ("org.apache.kafka:kafka-clients:1.1.1-mapr") {
+        implementation("org.apache.kafka:kafka-clients:1.1.1-mapr") {
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'
             exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
         }
@@ -58,7 +58,7 @@ subprojects {
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'
             exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
         }
-        implementation ("io.projectreactor.kafka:reactor-kafka:1.1.0.RELEASE") {
+        implementation("io.projectreactor.kafka:reactor-kafka:1.1.0.RELEASE") {
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'
             exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
             exclude group: 'org.apache.kafka', module: 'kafka-clients'

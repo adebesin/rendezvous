@@ -57,10 +57,10 @@ public class TasksHandler {
     }
 
     private boolean checkIfTaskNeedsToProcess(TaskRequest task) {
-        if(task.getModelId() == null && task.getModelClass() == null)
+        if (task.getModelId() == null && task.getModelClass() == null)
             return true;
 
-        if(task.getModelClass() != null && task.getModelClass().equals(config.getModelClass()))
+        if (task.getModelClass() != null && task.getModelClass().equals(config.getModelClass()))
             return true;
 
         return task.getModelId() != null && task.getModelId().equals(config.getId());

@@ -7,7 +7,7 @@ service TaskSender {
 }
 
 message TaskRequest {
-    optional string timeout = 1;
+    optional int64 timeout = 1;
     optional string modelClass = 2;
     optional string modelId = 3;
 }
@@ -17,5 +17,5 @@ message TaskResponse {
     required string modelClass = 2;
     required string modelId = 3;
     required string result = 4;
-    required string accuracy = 5;
+    required float accuracy = 5;
 }

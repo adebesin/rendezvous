@@ -65,10 +65,7 @@ public class TaskSenderService {
 
     public Mono<TaskResponse> sendAndReceive(TaskRequest task) {
         return Mono.defer(() -> {
-            TaskRequest taskRequest = task.toBuilder()
-                    .requestId(UUID.randomUUID().toString())
-                    .proxyId(config.getProxyId())
-                    .build();
+            TaskRequest taskRequest = fillMissingFieldsInRequest(task);
             String primaryModelId = taskRequest.getModelId() != null ?
                     taskRequest.getModelId() : modelProvider.getPrimaryModel().orElse("");
 
@@ -85,7 +82,7 @@ public class TaskSenderService {
 
     private Mono<TaskResponse> receive(String primaryId, Long timeout, DirectProcessor<TaskResponse> handler) {
         List<TaskResponse> responses = new ArrayList<>();
-        Duration duration = Duration.ofMillis(timeout != null ? timeout : config.getDefaultTimeout());
+        Duration duration = Duration.ofMillis(timeout);
         return handler.timeout(duration)
                 .filter(response -> checkIfPrimaryAndSave(primaryId, response, responses))
                 .buffer(1)
@@ -95,15 +92,15 @@ public class TaskSenderService {
                     return list;
                 })
                 .map(list -> list.get(0))
-                .doOnError(e -> onError(e, duration))
+                .onErrorMap(e -> onError(e, duration))
                 .next();
     }
 
     @SneakyThrows
-    private void onError(Throwable throwable, Duration duration) {
+    private Throwable onError(Throwable throwable, Duration duration) {
         if (throwable instanceof IndexOutOfBoundsException)
-            throw new TimeoutException(format("Timeout %d milliseconds", duration.toMillis()));
-        throw throwable;
+            return new TimeoutException(format("Timeout %d milliseconds", duration.toMillis()));
+        return throwable;
     }
 
     @SneakyThrows
@@ -133,5 +130,24 @@ public class TaskSenderService {
             log.debug(response.toString());
             handler.onNext(response);
         }
+    }
+
+    private TaskRequest fillMissingFieldsInRequest(TaskRequest task) {
+        TaskRequest.TaskRequestBuilder builder = TaskRequest.builder()
+                .requestId(UUID.randomUUID().toString())
+                .proxyId(config.getProxyId());
+
+        if (task.getModelId() != null && !task.getModelId().isEmpty())
+            builder.modelId(task.getModelId());
+
+        if (task.getModelClass() != null && !task.getModelClass().isEmpty())
+            builder.modelClass(task.getModelClass());
+
+        if (task.getTimeout() == null || task.getTimeout() == 0)
+            builder.timeout(config.getDefaultTimeout());
+        else
+            builder.timeout(task.getTimeout());
+
+        return builder.build();
     }
 }

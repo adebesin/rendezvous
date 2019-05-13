@@ -23,7 +23,7 @@ protobuf {
     generateProtoTasks {
         ofSourceSet('main').each { task ->
             task.builtins {
-                java{
+                java {
                     outputSubDir = 'protoGen'
                 }
             }
@@ -37,11 +37,12 @@ protobuf {
     generatedFilesBaseDir = "$projectDir/src/"
 }
 
-task cleanProtoGen{
-    doFirst{
+task cleanProtoGen {
+    doFirst {
         delete("$projectDir/src/main/protoGen")
     }
 }
+
 clean.dependsOn cleanProtoGen
 
 configurations.all {
@@ -54,6 +55,8 @@ configurations.all {
 dependencies {
     implementation project(":commons")
     implementation "org.springframework.boot:spring-boot-starter-webflux"
-    implementation("io.github.lognet:grpc-spring-boot-starter:3.2.2")
-    implementation("org.eclipse.jetty:jetty-webapp:9.4.16.v20190411")
+    implementation "io.grpc:grpc-stub:1.20.0"
+    implementation "io.grpc:grpc-protobuf:1.20.0"
+    implementation "io.grpc:grpc-netty-shaded:1.20.0"
+    implementation "org.eclipse.jetty:jetty-webapp:9.4.16.v20190411"
 }
