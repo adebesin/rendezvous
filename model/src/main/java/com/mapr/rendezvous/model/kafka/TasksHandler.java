@@ -14,9 +14,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Component;
 import reactor.core.scheduler.Schedulers;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Set;
+import javax.annotation.PostConstruct;
 
 import static java.lang.String.format;
 
@@ -41,18 +41,18 @@ public class TasksHandler {
     @SneakyThrows
     private void handle(ConsumerRecord<String, byte[]> record) {
         TaskRequest task = MAPPER.readValue(record.value(), TaskRequest.class);
-        log.info("Received task {} from proxy {}", task.getRequestId(), task.getProxyId());
+        log.debug("Received task {} from proxy {}", task.getRequestId(), task.getProxyId());
         log.debug(task.toString());
         if (checkIfTaskNeedsToProcess(task)) {
-            log.info("Starting processing {}", task.getRequestId());
+            log.debug("Starting processing {}", task.getRequestId());
             TaskResponse response = executor.handle(task);
             String topic = KafkaNameUtility.convertToKafkaTopic(stream, format("proxy-%s", task.getProxyId()));
-            log.info("Finished task {} and sending response to {}", response.getRequestId(), topic);
+            log.debug("Finished task {} and sending response to {}", response.getRequestId(), topic);
             client.publish(topic, MAPPER.writeValueAsBytes(response))
                     .doOnError(e -> log.error("Failed to send response on task {}", response.getRequestId(), e))
                     .subscribe();
         } else {
-            log.info("Skipped task {}", task.getRequestId());
+            log.debug("Skipped task {}", task.getRequestId());
         }
     }
 

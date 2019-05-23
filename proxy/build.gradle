@@ -1,3 +1,6 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
 version '1.0-SNAPSHOT'
 
 apply plugin: "com.google.protobuf"
@@ -50,6 +53,19 @@ configurations.all {
         force 'com.google.protobuf:protobuf-java:2.5.0'
         force 'com.google.protobuf:protobuf-java-util:3.0.0'
     }
+}
+
+task createDockerfile(type: Dockerfile) {
+    dependsOn bootJar
+    destFile = project.file('build/libs/Dockerfile')
+    from 'mapr/core:latest'
+    copyFile jar.archiveName, '/app.jar'
+}
+
+task buildImage(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    inputDir = project.file('build/libs')
+    tags = ["mapr/proxy:latest"]
 }
 
 dependencies {

@@ -25,7 +25,7 @@ public class TasksController {
 
     @PutMapping
     public Mono<TaskResponse> putTask(TaskRequest request) {
-        log.info("PUT request for '/task'");
+        log.debug("PUT request for '/task'");
         return taskService.sendAndReceive(request);
     }
 

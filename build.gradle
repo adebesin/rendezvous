@@ -1,14 +1,23 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
 buildscript {
     ext {
         springBootVersion = '2.1.4.RELEASE'
     }
     repositories {
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'com.bmuschko:gradle-docker-plugin:4.6.2'
+        classpath "gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:0.9.4"
     }
 }
+
+apply plugin: "com.avast.gradle.docker-compose"
 
 allprojects {
     repositories {
@@ -17,10 +26,37 @@ allprojects {
             url 'http://repository.mapr.com/maven'
         }
     }
+
+    apply plugin: 'com.bmuschko.docker-remote-api'
 }
 
 wrapper {
     gradleVersion = '4.10.3'
+}
+
+task buildImage(type: DockerBuildImage) {
+    inputDir = project.file('docker')
+    tags = ["mapr/core:latest"]
+    Map args = new HashMap()
+
+    if (project.hasProperty('MAPR_CONTAINER_USER'))
+        args.put('MAPR_CONTAINER_USER', project.MAPR_CONTAINER_USER)
+
+    if (project.hasProperty('MAPR_CONTAINER_UID'))
+        args.put('MAPR_CONTAINER_UID', project.MAPR_CONTAINER_UID)
+
+    if (project.hasProperty('MAPR_CONTAINER_GROUP'))
+        args.put('MAPR_CONTAINER_GROUP', project.MAPR_CONTAINER_GROUP)
+
+    if (project.hasProperty('MAPR_CONTAINER_GID'))
+        args.put('MAPR_CONTAINER_GID', project.MAPR_CONTAINER_GID)
+    
+    buildArgs = args
+}
+
+dockerCompose {
+    useComposeFiles = ['docker/docker-compose.yml']
+    projectName = 'rendezvous'
 }
 
 subprojects {
@@ -41,6 +77,7 @@ subprojects {
         dependencies {
             classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
             classpath "gradle.plugin.com.google.protobuf:protobuf-gradle-plugin:0.8.8"
+            classpath 'com.bmuschko:gradle-docker-plugin:4.6.2'
         }
     }
 

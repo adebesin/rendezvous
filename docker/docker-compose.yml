@@ -1,0 +1,31 @@
+version: '3'
+services:
+  proxy:
+    image: "mapr/proxy:latest"
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+    env_file:
+      - connection.env
+#    environment:
+#      - CONFIG_PROXY_ID=3
+#      - CONFIG_DEFAULT_TIMEOUT=50000
+#      - MODEL_PRIMARY=2
+  model:
+    image: "mapr/model:latest"
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+    env_file:
+      - connection.env
+#    environment:
+#      - CONFIG_ID=2
+#      - CONFIG_ACCURACY=0.2
+#      - CONFIG_MODEL_CLASS=My_model
+#      - CONFIG_SLEEP_START=1
+#      - CONFIG_SLEEP_END=2
+#      - CONFIG_RESULT_START=1
+#      - CONFIG_RESULT_END=2

@@ -17,7 +17,6 @@ import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.PostConstruct;
 
 import static java.lang.String.format;
 
@@ -105,7 +105,7 @@ public class TaskSenderService {
 
     @SneakyThrows
     private Mono<Void> send(TaskRequest task) {
-        log.info("Sending task {}", task.getRequestId());
+        log.debug("Sending task {}", task.getRequestId());
         log.debug(task.toString());
         return client.publish(requestTopic, MAPPER.writeValueAsBytes(task));
     }
@@ -126,7 +126,7 @@ public class TaskSenderService {
     private void handleResponse(TaskResponse response) {
         DirectProcessor<TaskResponse> handler = handlers.get(response.getRequestId());
         if (handler != null) {
-            log.info("Received response for task {} from model {}", response.getRequestId(), response.getModelId());
+            log.debug("Received response for task {} from model {}", response.getRequestId(), response.getModelId());
             log.debug(response.toString());
             handler.onNext(response);
         }
